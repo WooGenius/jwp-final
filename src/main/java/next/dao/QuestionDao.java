@@ -114,4 +114,32 @@ public class QuestionDao {
 			}
 		}
 	}
+	
+
+	// 요구사항 5
+	public void addCommentCount(long questionId) throws SQLException {
+		Connection con = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			con = ConnectionManager.getConnection();
+			String sql = "UPDATE QUESTIONS SET countOfComment=countOfComment+1 WHERE questionId = ?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setLong(1, questionId);
+
+			pstmt.executeUpdate();
+			
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (pstmt != null) {
+				pstmt.close();
+			}
+			if (con != null) {
+				con.close();
+			}
+		}
+		
+	}
 }
