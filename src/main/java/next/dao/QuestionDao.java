@@ -41,17 +41,12 @@ public class QuestionDao {
 	public List<Question> findAll() throws SQLException {
 		Connection con = null;
 		PreparedStatement pstmt = null;
-		ResultSet rs = null;
+		ResultSet rs = find(null, con, pstmt);
+		
+		List<Question> questions = new ArrayList<Question>();
+		Question question = null;
+		
 		try {
-			con = ConnectionManager.getConnection();
-			String sql = "SELECT questionId, writer, title, createdDate, countOfComment FROM QUESTIONS " + 
-					"order by questionId desc";
-			pstmt = con.prepareStatement(sql);
-
-			rs = pstmt.executeQuery();
-
-			List<Question> questions = new ArrayList<Question>();
-			Question question = null;
 			while (rs.next()) {
 				question = new Question(
 						rs.getLong("questionId"),
@@ -62,11 +57,11 @@ public class QuestionDao {
 						rs.getInt("countOfComment"));
 				questions.add(question);
 			}
-
+			
 			return questions;
 		} finally {
 			if (rs != null) {
-				rs.close();
+			rs.close();
 			}
 			if (pstmt != null) {
 				pstmt.close();
@@ -75,21 +70,14 @@ public class QuestionDao {
 				con.close();
 			}
 		}
+		
 	}
 
 	public Question findById(long questionId) throws SQLException {
 		Connection con = null;
 		PreparedStatement pstmt = null;
-		ResultSet rs = null;
+		ResultSet rs = find(null, con, pstmt);
 		try {
-			con = ConnectionManager.getConnection();
-			String sql = "SELECT questionId, writer, title, contents, createdDate, countOfComment FROM QUESTIONS " + 
-					"WHERE questionId = ?";
-			pstmt = con.prepareStatement(sql);
-			pstmt.setLong(1, questionId);
-
-			rs = pstmt.executeQuery();
-
 			Question question = null;
 			if (rs.next()) {
 				question = new Question(
@@ -115,6 +103,26 @@ public class QuestionDao {
 		}
 	}
 	
+	// 요구사항 7
+	// qustionId가 있으면 findById의 ResultSet을 없으면 findAll의 ResultSet을 반환하는 함수.
+	private ResultSet find(Long questionId, Connection con, PreparedStatement pstmt) throws SQLException {
+		ResultSet rs = null;
+		con = ConnectionManager.getConnection();
+		String sql = "SELECT questionId, writer, title, contents, createdDate, countOfComment FROM QUESTIONS ";
+			
+		if (questionId == null) {
+			sql = sql + "order by questionId desc";
+			pstmt = con.prepareStatement(sql);
+		} else {
+			sql = sql + "WHERE questionId = ?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setLong(1, questionId);
+		}
+			
+		rs = pstmt.executeQuery();
+					
+		return rs;
+	}
 
 	// 요구사항 5
 	public void addCommentCount(long questionId) throws SQLException {
